@@ -37,7 +37,7 @@ else()
     message(FATAL_ERROR "Unsupported host platform for rtos_sim")
 endif()
 
-set(RTOS_SIM_CONFIG_DIR ${RTOS_SIM_ROOT}/config/common)
+set(RTOS_SIM_CONFIG_DIR ${RTOS_SIM_ROOT}/config)
 
 if(NOT EXISTS ${RTOS_SIM_CONFIG_DIR}/FreeRTOSConfig.h)
     message(FATAL_ERROR "Missing platform config: ${RTOS_SIM_CONFIG_DIR}/FreeRTOSConfig.h")
