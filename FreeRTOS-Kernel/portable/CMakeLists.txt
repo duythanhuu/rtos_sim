@@ -415,8 +415,8 @@ add_library(freertos_kernel_port OBJECT
 
     # Posix Simulator port for GCC
     $<$<STREQUAL:${FREERTOS_PORT},GCC_POSIX>:
-        ThirdParty/GCC/Posix/port.c
-        ThirdParty/GCC/Posix/utils/wait_for_event.c>
+        GCC-Posix/port.c
+        GCC-Posix/utils/wait_for_event.c>
 
     # Xtensa LX / Espressif ESP32 port for GCC
     $<$<STREQUAL:${FREERTOS_PORT},GCC_XTENSA_ESP32>:
@@ -1148,8 +1148,8 @@ target_include_directories(freertos_kernel_port_headers INTERFACE
 
     # Posix Simulator port for GCC
     $<$<STREQUAL:${FREERTOS_PORT},GCC_POSIX>:
-        ${CMAKE_CURRENT_LIST_DIR}/ThirdParty/GCC/Posix
-        ${CMAKE_CURRENT_LIST_DIR}/ThirdParty/GCC/Posix/utils>
+        ${CMAKE_CURRENT_LIST_DIR}/GCC-Posix
+        ${CMAKE_CURRENT_LIST_DIR}/GCC-Posix/utils>
 
     # Xtensa LX / Espressif ESP32 port for GCC
     $<$<STREQUAL:${FREERTOS_PORT},GCC_XTENSA_ESP32>:

@@ -210,9 +210,23 @@ int main_full( void )
     vStartRecursiveMutexTasks();
     vStartCountingSemaphoreTasks();
     vStartDynamicPriorityTasks();
+
+    #if defined( _WIN32 ) && ( configUSE_QUEUE_SETS == 1 )
+    {
+        vStartQueueSetTasks();
+    }
+    #endif
+
     vStartQueueOverwriteTask( mainQUEUE_OVERWRITE_PRIORITY );
     vStartEventGroupTasks();
     vStartInterruptSemaphoreTasks();
+
+    #if defined( _WIN32 )
+    {
+        xTaskCreate( prvDemoQueueSpaceFunctions, NULL, configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+    }
+    #endif
+
     vCreateBlockTimeTasks();
     vCreateAbortDelayTasks();
     xTaskCreate( prvDemoQueueSpaceFunctions, "QSpace", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
@@ -227,7 +241,9 @@ int main_full( void )
 
     #if ( configUSE_QUEUE_SETS == 1 )
     {
+        #if !defined( _WIN32 )
         vStartQueueSetTasks();
+        #endif
         vStartQueueSetPollingTask();
     }
     #endif
@@ -425,9 +441,9 @@ static void prvCheckTask( void * pvParameters )
             }
         #endif /* configSUPPORT_STATIC_ALLOCATION */
 
-        printf( "%s - tick count %lu \r\n",
-                pcStatusMessage,
-                xTaskGetTickCount() );
+        console_print( "%s - tick count %llu\n",
+                       pcStatusMessage,
+                       ( unsigned long long ) xTaskGetTickCount() );
 
         if( xErrorCount != 0 )
         {
@@ -451,12 +467,16 @@ static void prvTestTask( void * pvParameters )
      * does not have anything to do. */
     for( ; ; )
     {
-        /* Sleep to reduce CPU load, but don't sleep indefinitely in case there are
-         * tasks waiting to be terminated by the idle task. */
+        /* Sleep to reduce CPU load on POSIX, but don't sleep indefinitely in
+         * case there are tasks waiting to be terminated by the idle task. */
+        #if !defined( _WIN32 )
         struct timespec ts;
         ts.tv_sec = ulMSToSleep / 1000;
         ts.tv_nsec = ulMSToSleep % 1000l * 1000000l;
         nanosleep( &ts, NULL );
+        #else
+        taskYIELD();
+        #endif
     }
 }
 /*-----------------------------------------------------------*/
@@ -467,13 +487,18 @@ void vFullDemoIdleFunction( void )
     const unsigned long ulMSToSleep = 15;
     void * pvAllocated;
 
-    /* Sleep to reduce CPU load, but don't sleep indefinitely in case there are
-     * tasks waiting to be terminated by the idle task. */
-    struct timespec ts;
-
-    ts.tv_sec = ulMSToSleep / 1000;
-    ts.tv_nsec = ulMSToSleep % 1000l * 1000000l;
-    nanosleep( &ts, NULL );
+    #if !defined( _WIN32 )
+    {
+        /* Sleep to reduce CPU load, but don't sleep indefinitely in case there are
+         * tasks waiting to be terminated by the idle task. */
+        struct timespec ts;
+        ts.tv_sec = ulMSToSleep / 1000;
+        ts.tv_nsec = ulMSToSleep % 1000l * 1000000l;
+        nanosleep( &ts, NULL );
+    }
+    #else
+    ( void ) ulMSToSleep;
+    #endif
 
     /* Demonstrate a few utility functions that are not demonstrated by any of
      * the standard demo tasks. */

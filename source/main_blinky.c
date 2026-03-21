@@ -81,7 +81,12 @@
  */
 
 #include <stdio.h>
-#include <pthread.h>
+
+#if defined( _WIN32 )
+    #include <conio.h>
+#else
+    #include <pthread.h>
+#endif
 
 /* Kernel includes. */
 #include "FreeRTOS.h"
@@ -122,6 +127,10 @@ static void prvQueueSendTask( void * pvParameters );
  */
 static void prvQueueSendTimerCallback( TimerHandle_t xTimerHandle );
 
+#if defined( _WIN32 )
+    void vBlinkyKeyboardInterruptHandler( int xKeyPressed );
+#endif
+
 /*-----------------------------------------------------------*/
 
 /* The queue used by both tasks. */
@@ -136,6 +145,10 @@ static TimerHandle_t xTimer = NULL;
 void main_blinky( void )
 {
     const TickType_t xTimerPeriod = mainTIMER_SEND_FREQUENCY_MS;
+
+    #if defined( _WIN32 )
+        printf( "\r\nStarting the blinky demo. Press '%c' to reset the software timer used in this demo.\r\n\r\n", 'r' );
+    #endif
 
     /* Create the queue. */
     xQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( uint32_t ) );
@@ -249,6 +262,26 @@ static void prvQueueReceiveTask( void * pvParameters )
          * using console IO so it is ok.  However, note the comments at the top of
          * this file about the risks of making Linux system calls (such as
          * console output) from a FreeRTOS task. */
+        #if defined( _WIN32 )
+        taskENTER_CRITICAL();
+        {
+            if( ulReceivedValue == mainVALUE_SENT_FROM_TASK )
+            {
+                printf( "Message received from task\r\n" );
+            }
+            else if( ulReceivedValue == mainVALUE_SENT_FROM_TIMER )
+            {
+                printf( "Message received from software timer\r\n" );
+            }
+            else
+            {
+                printf( "Unexpected message\r\n" );
+            }
+
+            fflush( stdout );
+        }
+        taskEXIT_CRITICAL();
+        #else
         if( ulReceivedValue == mainVALUE_SENT_FROM_TASK )
         {
             console_print( "Message received from task\n" );
@@ -261,6 +294,35 @@ static void prvQueueReceiveTask( void * pvParameters )
         {
             console_print( "Unexpected message\n" );
         }
+        #endif
     }
 }
 /*-----------------------------------------------------------*/
+
+#if defined( _WIN32 )
+
+void vBlinkyKeyboardInterruptHandler( int xKeyPressed )
+{
+    switch( xKeyPressed )
+    {
+        case 'r':
+
+            if( xTimer != NULL )
+            {
+                portENTER_CRITICAL();
+                {
+                    printf( "\r\nResetting software timer.\r\n\r\n" );
+                }
+                portEXIT_CRITICAL();
+
+                xTimerReset( xTimer, portMAX_DELAY );
+            }
+
+            break;
+
+        default:
+            break;
+    }
+}
+
+#endif

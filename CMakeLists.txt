@@ -13,6 +13,9 @@ set(RTOS_SIM_ROOT ${CMAKE_CURRENT_LIST_DIR})
 set(FREERTOS_KERNEL_PATH ${RTOS_SIM_ROOT}/FreeRTOS-Kernel)
 set(FREERTOS_TRACE_PATH ${RTOS_SIM_ROOT}/FreeRTOS-Plus-Trace)
 set(RTOS_SIM_PLATFORM_ROOT ${RTOS_SIM_ROOT}/platform)
+set(RTOS_SIM_SOURCE_DIR ${RTOS_SIM_ROOT}/source)
+set(RTOS_SIM_POSIX_SUPPORT_DIR ${RTOS_SIM_PLATFORM_ROOT}/posix_support)
+set(RTOS_SIM_WINDOWS_SUPPORT_DIR ${RTOS_SIM_PLATFORM_ROOT}/windows_support)
 set(FREERTOS_COMMON_MINIMAL_PATH ${RTOS_SIM_ROOT}/demo/Common/Minimal)
 set(FREERTOS_COMMON_INCLUDE_PATH ${RTOS_SIM_ROOT}/demo/Common/include)
 
@@ -24,17 +27,17 @@ if(WIN32)
     set(RTOS_SIM_PLATFORM windows)
     set(RTOS_SIM_PORT MSVC_MINGW)
     set(RTOS_SIM_HEAP 5)
-    set(RTOS_SIM_CONFIG_DIR ${RTOS_SIM_ROOT}/config/windows)
-    set(RTOS_SIM_APP_DIR ${RTOS_SIM_PLATFORM_ROOT}/windows)
+    set(RTOS_SIM_SUPPORT_DIR ${RTOS_SIM_WINDOWS_SUPPORT_DIR})
 elseif(UNIX)
     set(RTOS_SIM_PLATFORM posix)
     set(RTOS_SIM_PORT GCC_POSIX)
     set(RTOS_SIM_HEAP 3)
-    set(RTOS_SIM_CONFIG_DIR ${RTOS_SIM_ROOT}/config/posix)
-    set(RTOS_SIM_APP_DIR ${RTOS_SIM_PLATFORM_ROOT}/posix)
+    set(RTOS_SIM_SUPPORT_DIR ${RTOS_SIM_POSIX_SUPPORT_DIR})
 else()
     message(FATAL_ERROR "Unsupported host platform for rtos_sim")
 endif()
+
+set(RTOS_SIM_CONFIG_DIR ${RTOS_SIM_ROOT}/config/common)
 
 if(NOT EXISTS ${RTOS_SIM_CONFIG_DIR}/FreeRTOSConfig.h)
     message(FATAL_ERROR "Missing platform config: ${RTOS_SIM_CONFIG_DIR}/FreeRTOSConfig.h")
@@ -91,16 +94,16 @@ if(TARGET freertos_kernel AND RTOS_SIM_PLATFORM STREQUAL "posix")
 endif()
 
 set(RTOS_SIM_MAIN_SOURCES
-    ${RTOS_SIM_APP_DIR}/code_coverage_additions.c
-    ${RTOS_SIM_APP_DIR}/main.c
-    ${RTOS_SIM_APP_DIR}/main_blinky.c
-    ${RTOS_SIM_APP_DIR}/main_full.c
+    ${RTOS_SIM_SUPPORT_DIR}/code_coverage_additions.c
+    ${RTOS_SIM_SOURCE_DIR}/main.c
+    ${RTOS_SIM_SOURCE_DIR}/main_blinky.c
+    ${RTOS_SIM_SOURCE_DIR}/main_full.c
 )
 
 if(RTOS_SIM_PLATFORM STREQUAL "posix")
     list(APPEND RTOS_SIM_MAIN_SOURCES
-        ${RTOS_SIM_APP_DIR}/console.c
-        ${RTOS_SIM_APP_DIR}/run-time-stats-utils.c
+        ${RTOS_SIM_SOURCE_DIR}/console.c
+        ${RTOS_SIM_SUPPORT_DIR}/run-time-stats-utils.c
     )
 
     set(RTOS_SIM_DEMO_SOURCES
@@ -132,7 +135,7 @@ if(RTOS_SIM_PLATFORM STREQUAL "posix")
     )
 else()
     list(APPEND RTOS_SIM_MAIN_SOURCES
-        ${RTOS_SIM_APP_DIR}/Run-time-stats-utils.c
+        ${RTOS_SIM_SUPPORT_DIR}/Run-time-stats-utils.c
     )
 
     file(GLOB RTOS_SIM_DEMO_SOURCES CONFIGURE_DEPENDS ${FREERTOS_COMMON_MINIMAL_PATH}/*.c)
@@ -147,7 +150,7 @@ else()
         ${FREERTOS_COMMON_MINIMAL_PATH}/TaskNotifyArray.c
     )
     list(APPEND RTOS_SIM_DEMO_SOURCES
-        ${RTOS_SIM_APP_DIR}/DemosModifiedForLowTickRate/recmutex.c
+        ${RTOS_SIM_SUPPORT_DIR}/DemosModifiedForLowTickRate/recmutex.c
     )
 endif()
 
@@ -171,7 +174,8 @@ target_include_directories(
     PRIVATE
         ${RTOS_SIM_CONFIG_DIR}
         ${RTOS_SIM_CONFIG_DIR}/Trace_Recorder_Configuration
-        ${RTOS_SIM_APP_DIR}
+        ${RTOS_SIM_SOURCE_DIR}
+        ${RTOS_SIM_SUPPORT_DIR}
         ${FREERTOS_TRACE_PATH}/config
         ${FREERTOS_COMMON_INCLUDE_PATH}
         ${FREERTOS_TRACE_PATH}/include
