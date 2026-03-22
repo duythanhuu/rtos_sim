@@ -620,7 +620,7 @@ static void prvExerciseHeapStats( void )
     size_t xMetaDataOverhead, i;
     void * pvAllocatedBlock;
     const size_t xArraySize = 5, xBlockSize = 1000UL;
-    void * pvAllocatedBlocks[ xArraySize ];
+    void * pvAllocatedBlocks[ 5 ]; /* MSVC: array size must be a compile-time constant; 5 == xArraySize */
 
     vPortGetHeapStats( &xHeapStats );
     configASSERT( xHeapStats.xMinimumEverFreeBytesRemaining == xHeapStats.xAvailableHeapSpaceInBytes );
