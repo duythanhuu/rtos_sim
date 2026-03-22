@@ -150,6 +150,14 @@ else()
         ${FREERTOS_COMMON_MINIMAL_PATH}/sp_flop.c
         ${FREERTOS_COMMON_MINIMAL_PATH}/TaskNotifyArray.c
     )
+
+    # MessageBufferAMP.c uses portYIELD_FROM_ISR (expands to "return x") inside a
+    # void function.  GCC 14 made -Wreturn-mismatch an error; suppress it for this
+    # file only since the macro is defined that way by the Windows port.
+    set_source_files_properties(
+        ${FREERTOS_COMMON_MINIMAL_PATH}/MessageBufferAMP.c
+        PROPERTIES COMPILE_OPTIONS "-Wno-return-mismatch"
+    )
     list(APPEND RTOS_SIM_DEMO_SOURCES
         ${RTOS_SIM_SUPPORT_DIR}/DemosModifiedForLowTickRate/recmutex.c
     )
