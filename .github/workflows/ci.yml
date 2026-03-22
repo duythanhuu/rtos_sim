@@ -32,20 +32,24 @@ jobs:
     runs-on: windows-latest
     defaults:
       run:
-        shell: bash
+        shell: msys2 {0}
     steps:
       - uses: actions/checkout@v4
 
-      # MSYS2 is pre-installed on windows-latest.  Install the 32-bit (i686)
-      # MinGW-w64 toolchain so that the -m32 flag in CMakeLists.txt works.
-      - name: Install MinGW-w64 i686 toolchain
-        run: /c/msys64/usr/bin/pacman -S --noconfirm --needed mingw-w64-i686-gcc mingw-w64-i686-make
-
-      - name: Add MinGW-w64 i686 to PATH
-        run: echo "C:/msys64/mingw32/bin" >> $GITHUB_PATH
+      # Use msys2/setup-msys2 with MINGW32 to get a native 32-bit (i686)
+      # MinGW-w64 toolchain.  This is the recommended way to use MSYS2 on
+      # GitHub Actions and avoids PATH / sh.exe conflicts with MinGW Makefiles.
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          update: false
+          install: >-
+            mingw-w64-i686-gcc
+            mingw-w64-i686-cmake
+            mingw-w64-i686-ninja
 
       - name: Configure
-        run: cmake -S . -B build -G "MinGW Makefiles" -DRTOS_SIM_DEMO=BLINKY
+        run: cmake -S . -B build -G Ninja -DRTOS_SIM_DEMO=BLINKY
 
       - name: Build
         run: cmake --build build

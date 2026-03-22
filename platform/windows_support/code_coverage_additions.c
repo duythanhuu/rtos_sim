@@ -370,8 +370,8 @@ static TaskStatus_t xStatus, *pxStatusArray;
 TaskHandle_t xTimerTask, xIdleTask;
 BaseType_t xReturn = pdPASS;
 UBaseType_t uxNumberOfTasks, uxReturned, ux;
-uint32_t ulTotalRunTime1, ulTotalRunTime2;
-const uint32_t ulRunTimeTollerance = ( uint32_t ) 0xfff;
+configRUN_TIME_COUNTER_TYPE ulTotalRunTime1, ulTotalRunTime2;
+const configRUN_TIME_COUNTER_TYPE ulRunTimeTollerance = ( configRUN_TIME_COUNTER_TYPE ) 0xfff;
 
 	/* Obtain task status with the stack high water mark and without the
 	state. */
