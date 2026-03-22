@@ -179,7 +179,7 @@ else()
     # file only since the macro is defined that way by the Windows port.
     set_source_files_properties(
         ${FREERTOS_COMMON_MINIMAL_PATH}/MessageBufferAMP.c
-        PROPERTIES COMPILE_OPTIONS "-Wno-return-mismatch"
+        PROPERTIES COMPILE_OPTIONS "$<$<C_COMPILER_ID:GNU,Clang>:-Wno-return-mismatch>"
     )
     list(APPEND RTOS_SIM_DEMO_SOURCES
         ${RTOS_SIM_SUPPORT_DIR}/DemosModifiedForLowTickRate/recmutex.c
