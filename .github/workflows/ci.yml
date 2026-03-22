@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  posix:
+    name: POSIX / Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -DRTOS_SIM_DEMO=BLINKY
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Run tick timing test
+        run: |
+          timeout 15 stdbuf -oL ./build/bin/rtos_sim > output.txt 2>&1 || true
+          cat output.txt
+          grep -q "Tick Timing Test: PASSED" output.txt
+
+  windows:
+    name: Windows / MinGW
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      # MSYS2 is pre-installed on windows-latest; use its MinGW-w64 toolchain.
+      - name: Add MinGW-w64 to PATH
+        run: echo "C:/msys64/mingw64/bin" >> $GITHUB_PATH
+
+      - name: Configure
+        run: cmake -S . -B build -G "MinGW Makefiles" -DRTOS_SIM_DEMO=BLINKY
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Run tick timing test
+        shell: pwsh
+        run: |
+          $proc = Start-Process -FilePath ".\build\bin\rtos_sim.exe" `
+                                -RedirectStandardOutput "output.txt" `
+                                -NoNewWindow -PassThru
+          $proc | Wait-Process -Timeout 15 -ErrorAction SilentlyContinue
+          if (-not $proc.HasExited) { $proc | Stop-Process -Force }
+          Get-Content "output.txt"
+          if (-not (Select-String -Path "output.txt" -Pattern "Tick Timing Test: PASSED" -Quiet)) {
+            Write-Error "Tick timing test did not PASS"
+            exit 1
+          }

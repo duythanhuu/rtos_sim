@@ -62,6 +62,7 @@ void console_print( const char * fmt,
     xSemaphoreTake( xStdioMutex, portMAX_DELAY );
 
     vprintf( fmt, vargs );
+    fflush( stdout );
 
     xSemaphoreGive( xStdioMutex );
 

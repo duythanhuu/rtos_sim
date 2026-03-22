@@ -58,6 +58,7 @@
 #include <time.h>
 
 #if defined( _WIN32 )
+    #include <windows.h>
     #include <conio.h>
 #else
     #include <unistd.h>

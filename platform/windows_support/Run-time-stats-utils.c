@@ -37,6 +37,7 @@
 */
 
 /* FreeRTOS includes. */
+#include <windows.h>
 #include <FreeRTOS.h>
 
 /* Variables used in the creation of the run time stats time base.  Run time

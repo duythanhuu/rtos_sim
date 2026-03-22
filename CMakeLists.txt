@@ -95,6 +95,8 @@ endif()
 
 set(RTOS_SIM_MAIN_SOURCES
     ${RTOS_SIM_SUPPORT_DIR}/code_coverage_additions.c
+    ${RTOS_SIM_SOURCE_DIR}/console.c
+    ${RTOS_SIM_SOURCE_DIR}/tick_timing_test.c
     ${RTOS_SIM_SOURCE_DIR}/main.c
     ${RTOS_SIM_SOURCE_DIR}/main_blinky.c
     ${RTOS_SIM_SOURCE_DIR}/main_full.c
@@ -102,7 +104,6 @@ set(RTOS_SIM_MAIN_SOURCES
 
 if(RTOS_SIM_PLATFORM STREQUAL "posix")
     list(APPEND RTOS_SIM_MAIN_SOURCES
-        ${RTOS_SIM_SOURCE_DIR}/console.c
         ${RTOS_SIM_SUPPORT_DIR}/run-time-stats-utils.c
     )
 
