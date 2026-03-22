@@ -51,14 +51,37 @@ else()
     message(FATAL_ERROR "RTOS_SIM_DEMO must be FULL or BLINKY")
 endif()
 
+# x86 (32-bit) only — reject 64-bit configurations early.
+# For MSVC use: cmake -A Win32 ...
+# For GCC/Clang the -m32 flags below enforce 32-bit; CMAKE_SIZEOF_VOID_P
+# reflects the host until compiler tests run, so we check after project().
+if(CMAKE_SIZEOF_VOID_P EQUAL 8 AND NOT CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    message(FATAL_ERROR
+        "This project targets x86 (32-bit) only.\n"
+        "For MSVC / Ninja: open a 32-bit VS Developer Command Prompt, or pass -A Win32 to the VS generator.")
+endif()
+
 add_compile_options(
     $<$<C_COMPILER_ID:GNU,Clang>:-Wall>
     $<$<C_COMPILER_ID:GNU,Clang>:-Wextra>
     $<$<C_COMPILER_ID:GNU,Clang>:-Wpedantic>
+    $<$<C_COMPILER_ID:GNU,Clang>:-m32>
+    # MSVC: match the warning level and suppressions from the WIN32-MSVC reference project
+    $<$<C_COMPILER_ID:MSVC>:/W4>
+    $<$<C_COMPILER_ID:MSVC>:/wd4210>  # unreferenced label (linker-level, harmless)
+    $<$<C_COMPILER_ID:MSVC>:/wd4255>  # no function prototype
+    $<$<C_COMPILER_ID:MSVC>:/wd4574>  # macro defined to 0
+    $<$<C_COMPILER_ID:MSVC>:/wd4668>  # macro not defined, replaced with 0
+    $<$<C_COMPILER_ID:MSVC>:/wd4710>  # function not inlined
+    $<$<C_COMPILER_ID:MSVC>:/wd4820>  # struct padding bytes added
 )
 
 if(WIN32)
     add_compile_definitions(_WIN32_WINNT=0x0601)
+    add_compile_definitions(
+        $<$<C_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
+        $<$<C_COMPILER_ID:MSVC>:WIN32_LEAN_AND_MEAN>
+    )
 endif()
 
 add_library(freertos_config INTERFACE)
@@ -200,6 +223,11 @@ target_compile_definitions(
     )
 
 target_link_libraries(rtos_sim PRIVATE freertos_kernel freertos_config)
+
+# Force 32-bit output for GCC/Clang (POSIX and MinGW).
+target_link_options(rtos_sim PRIVATE
+    $<$<C_COMPILER_ID:GNU,Clang>:-m32>
+)
 
 set_target_properties(
     rtos_sim

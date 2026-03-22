@@ -95,12 +95,8 @@
 #endif
 
 #if defined( _WIN32 )
-    /* Tick type width is defined based on the compiler type (32bit or 64bit). */
-    #ifdef __x86_64__
-        #define configTICK_TYPE_WIDTH_IN_BITS      TICK_TYPE_WIDTH_64_BITS
-    #else
-        #define configTICK_TYPE_WIDTH_IN_BITS      TICK_TYPE_WIDTH_32_BITS
-    #endif
+    /* x86 (32-bit) only. */
+    #define configTICK_TYPE_WIDTH_IN_BITS          TICK_TYPE_WIDTH_32_BITS
 #endif
 
 /* Software timer related configuration options.  The maximum possible task
@@ -115,7 +111,12 @@
 #define configMAX_PRIORITIES                       ( 7 )
 
 /* Run time stats gathering configuration options. */
-unsigned long ulGetRunTimeCounterValue( void ); /* Prototype of function that returns run time counter. */
+#if defined( _WIN32 )
+    #define configRUN_TIME_COUNTER_TYPE               uint64_t
+    configRUN_TIME_COUNTER_TYPE ulGetRunTimeCounterValue( void );
+#else
+    unsigned long ulGetRunTimeCounterValue( void );
+#endif
 void vConfigureTimerForRunTimeStats( void );    /* Prototype of function that initialises the run time counter. */
 #define configGENERATE_RUN_TIME_STATS             1
 #if defined( _WIN32 )

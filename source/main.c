@@ -60,6 +60,9 @@
 #if defined( _WIN32 )
     #include <windows.h>
     #include <conio.h>
+    #ifdef _MSC_VER
+        #include <intrin.h>
+    #endif
 #else
     #include <unistd.h>
     #include <signal.h>
@@ -417,10 +420,17 @@ void vAssertCalled( unsigned long ulLine,
         }
         #endif
 
+        #ifdef _MSC_VER
+            __debugbreak();
+        #endif
         while( ulSetToNonZeroInDebuggerToContinue == 0 )
         {
-            __asm volatile ( "NOP" );
-            __asm volatile ( "NOP" );
+            #ifdef _MSC_VER
+                __nop();
+            #else
+                __asm volatile ( "NOP" );
+                __asm volatile ( "NOP" );
+            #endif
         }
     }
     taskEXIT_CRITICAL();

@@ -56,3 +56,38 @@ jobs:
             Write-Error "Tick timing test did not PASS"
             exit 1
           }
+
+  windows-msvc:
+    name: Windows / MSVC x86
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      # Initialise the x86 MSVC environment (vcvarsall x86) so that cmake
+      # picks up cl.exe and the 32-bit linker when using the Ninja generator.
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x86
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DRTOS_SIM_DEMO=BLINKY
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Run tick timing test
+        shell: pwsh
+        run: |
+          $proc = Start-Process -FilePath ".\build\bin\rtos_sim.exe" `
+                                -RedirectStandardOutput "output.txt" `
+                                -NoNewWindow -PassThru
+          $proc | Wait-Process -Timeout 15 -ErrorAction SilentlyContinue
+          if (-not $proc.HasExited) { $proc | Stop-Process -Force }
+          Get-Content "output.txt"
+          if (-not (Select-String -Path "output.txt" -Pattern "Tick Timing Test: PASSED" -Quiet)) {
+            Write-Error "Tick timing test did not PASS"
+            exit 1
+          }
