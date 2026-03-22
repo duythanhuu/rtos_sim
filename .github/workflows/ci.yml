@@ -12,6 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install 32-bit build dependencies
+        run: sudo apt-get install -y gcc-multilib
+
       - name: Configure
         run: cmake -S . -B build -DRTOS_SIM_DEMO=BLINKY
 
@@ -33,9 +36,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # MSYS2 is pre-installed on windows-latest; use its MinGW-w64 toolchain.
-      - name: Add MinGW-w64 to PATH
-        run: echo "C:/msys64/mingw64/bin" >> $GITHUB_PATH
+      # MSYS2 is pre-installed on windows-latest.  Install the 32-bit (i686)
+      # MinGW-w64 toolchain so that the -m32 flag in CMakeLists.txt works.
+      - name: Install MinGW-w64 i686 toolchain
+        run: /c/msys64/usr/bin/pacman -S --noconfirm --needed mingw-w64-i686-gcc mingw-w64-i686-make
+
+      - name: Add MinGW-w64 i686 to PATH
+        run: echo "C:/msys64/mingw32/bin" >> $GITHUB_PATH
 
       - name: Configure
         run: cmake -S . -B build -G "MinGW Makefiles" -DRTOS_SIM_DEMO=BLINKY
