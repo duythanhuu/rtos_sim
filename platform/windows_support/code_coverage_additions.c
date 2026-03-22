@@ -30,6 +30,8 @@
  * here because they can only be executed when configASSERT() is not defined.
  */
 
+#include <string.h>
+
 #include "FreeRTOS.h"
 #include "task.h"
 #include "timers.h"
